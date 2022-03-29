@@ -4,6 +4,9 @@
     "parameters": {
         "webAppName": {
             "value": "ghactionshelloworld"
+        },
+        "sku ": {
+            "value": "B1"
         }
     }
 }
