@@ -6,7 +6,7 @@ on:
 jobs:
   add-comment:
     name: Add comment to help wanted
-    if: github.event.label.name == 'help-wanted'
+    if: github.event.label.name == 'help wanted'
     runs-on: ubuntu-latest
     permissions:
       issues: write
