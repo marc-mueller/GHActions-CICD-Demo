@@ -33,12 +33,11 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          
+
       - name: 'Run Azure webapp deploy action using publish profile credentials'
         uses: azure/webapps-deploy@v2
         with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
-          #publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} 
           package: '${{ runner.temp }}/helloworldapp'
           slot-name: staging
 

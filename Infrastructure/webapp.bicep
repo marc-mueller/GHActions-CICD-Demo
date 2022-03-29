@@ -42,3 +42,9 @@ resource webApp 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
+resource slotStaging 'Microsoft.Web/sites/slots@2021-03-01' = {
+  parent: webApp
+  name: 'staging'
+  location: location
+}
+

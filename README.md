@@ -20,4 +20,3 @@ Perform the following action to setup resource groups and secrets fo the GitHub 
   - AZURE_CREDENTIALS --> paste the entire json from the command above
   - AZURE_RG --> resource group name
   - AZURE_SUBSCRIPTION --> subscription id
-  - AZURE_WEBAPP_PUBLISH_PROFILE --> publish profile from the deployed web application
