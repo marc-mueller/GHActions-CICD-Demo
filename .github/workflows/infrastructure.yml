@@ -12,6 +12,7 @@ env:
 jobs:
   deploy-infrastructure:
     runs-on: ubuntu-latest
+    name: Deploy Azure Infrastructure
     steps:
       - name: Checkout
         uses: actions/checkout@v2

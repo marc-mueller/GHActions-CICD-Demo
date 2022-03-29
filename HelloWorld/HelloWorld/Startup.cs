@@ -37,7 +37,7 @@ namespace HelloWorld
             //    options.MinimumSameSitePolicy = SameSiteMode.None;
             //});
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddMvc();
             services.AddSingleton<ConfigurationOptions>(new ConfigurationOptions() { Message = Configuration["Message"], DeploymentEnvironment = Configuration["DeploymentEnvironment"] });
         }
 
