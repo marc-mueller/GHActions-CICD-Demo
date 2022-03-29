@@ -9,6 +9,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: demo-gh-actions-helloworld
+  AZURE_WEBAPP_FULLNAME: ${{ env.AZURE_WEBAPP_FULLNAME }}-webapp
   DOTNET_VERSION: '6.0.x'
   AZURE_RESOURCEGROUP_NAME: ${{ secrets.AZURE_RG }}
 
@@ -36,7 +37,7 @@ jobs:
       - name: 'Run Azure webapp deploy action using publish profile credentials'
         uses: azure/webapps-deploy@v2
         with: 
-          app-name: ${{ env.AZURE_WEBAPP_NAME }} 
+          app-name: ${{ env.AZURE_WEBAPP_FULLNAME }} 
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} 
           package: '${{ runner.temp }}/helloworldapp'
           slot-name: staging
@@ -48,5 +49,5 @@ jobs:
       
       - name: Swap to production slot
         run: |
-          az webapp deployment slot swap --resource-group ${{ env.AZURE_RESOURCEGROUP_NAME }} --name ${{ env.AZURE_WEBAPP_NAME }} --slot staging --target-slot production
-          echo "Swap finished. App Service Application URL: https://$(az webapp show --resource-group ${{ env.AZURE_RESOURCEGROUP_NAME }} --name ${{ env.AZURE_WEBAPP_NAME }} --query hostNames[0] -o tsv)"
+          az webapp deployment slot swap --resource-group ${{ env.AZURE_RESOURCEGROUP_NAME }} --name ${{ env.AZURE_WEBAPP_FULLNAME }} --slot staging --target-slot production
+          echo "Swap finished. App Service Application URL: https://$(az webapp show --resource-group ${{ env.AZURE_RESOURCEGROUP_NAME }} --name ${{ env.AZURE_WEBAPP_FULLNAME }} --query hostNames[0] -o tsv)"
