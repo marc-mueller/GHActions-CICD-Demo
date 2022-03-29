@@ -10,7 +10,7 @@ env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
 
 jobs:
-  build-and-deploy-to-dev:
+  deploy-infrastructure:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
