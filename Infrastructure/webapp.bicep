@@ -46,5 +46,8 @@ resource slotStaging 'Microsoft.Web/sites/slots@2021-03-01' = {
   parent: webApp
   name: 'staging'
   location: location
+  properties: {
+    serverFarmId: appServicePlan.id
+  }
 }
 
