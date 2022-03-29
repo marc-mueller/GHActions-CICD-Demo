@@ -2,11 +2,14 @@ name: Build and deploy app
 
 on:
   push:
+    paths-ignore:
+      - "Infrastructure/**"
+      - ".github/workflows/infrastructure.yml"
   workflow_dispatch:
 
 env:
   AZURE_WEBAPP_NAME: demo-gh-actions-helloworld
-  AZURE_WEBAPP_PACKAGE_PATH: ${{ RUNNER_TEMP }}
+  AZURE_WEBAPP_PACKAGE_PATH: ${{ runner.temp }}
   DOTNET_VERSION: '6'
   AZURE_RESOURCEGROUP_NAME: ${{ secrets.AZURE_RG }}
 
