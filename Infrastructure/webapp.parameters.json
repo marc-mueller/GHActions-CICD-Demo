@@ -5,7 +5,7 @@
         "webAppName": {
             "value": "ghactionshelloworld"
         },
-        "sku ": {
+        "sku": {
             "value": "B1"
         }
     }
