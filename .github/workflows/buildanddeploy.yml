@@ -6,6 +6,7 @@ on:
       - "Infrastructure/**"
       - ".github/workflows/infrastructure.yml"
       - ".github/workflows/issuehelpwanted.yml"
+      - ".github/workflows/stale.yml"
   workflow_dispatch:
 
 env:
