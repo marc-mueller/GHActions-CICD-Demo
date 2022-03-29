@@ -9,7 +9,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: demo-gh-actions-helloworld
-  DOTNET_VERSION: '6'
+  DOTNET_VERSION: '6.0.x'
   AZURE_RESOURCEGROUP_NAME: ${{ secrets.AZURE_RG }}
 
 jobs:
