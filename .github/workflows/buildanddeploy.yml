@@ -9,7 +9,6 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: demo-gh-actions-helloworld
-  AZURE_WEBAPP_PACKAGE_PATH: ${{ runner.temp }}
   DOTNET_VERSION: '6'
   AZURE_RESOURCEGROUP_NAME: ${{ secrets.AZURE_RG }}
 
@@ -31,7 +30,7 @@ jobs:
       - name: dotnet build and publish
         run: |
           dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
-          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/helloworldapp 
+          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
           
       # Deploy to Azure Web apps staging slot
       - name: 'Run Azure webapp deploy action using publish profile credentials'
@@ -39,7 +38,7 @@ jobs:
         with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }} 
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }} 
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/helloworldapp'
+          package: '${{ runner.temp }}/helloworldapp'
           slot-name: staging
 
       - name: Login for az cli commands 
