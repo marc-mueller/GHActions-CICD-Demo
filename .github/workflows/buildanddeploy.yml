@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: demo-gh-actions-helloworld
+  AZURE_WEBAPP_NAME: 4thelloworlddemo
   DOTNET_VERSION: '6.0.x'
   AZURE_RESOURCEGROUP_NAME: ${{ secrets.AZURE_RG }}
 
