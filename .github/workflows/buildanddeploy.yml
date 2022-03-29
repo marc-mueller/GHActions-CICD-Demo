@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - "Infrastructure/**"
       - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/issuehelpwanted.yml"
   workflow_dispatch:
 
 env:
