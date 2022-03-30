@@ -16,11 +16,12 @@ on:
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
   DOTNET_VERSION: '6.0.x'
+  ARTIFACTNAME: webapp
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    name: Build and Deploy
+    name: Build the web app
     steps:
 
       - uses: actions/checkout@master
@@ -34,13 +35,101 @@ jobs:
         run: |
           dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
           dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
+          
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          path: ${{ runner.temp }}/helloworldapp
+          if-no-files-found: error
       
+  deploy-pr:
+    runs-on: ubuntu-latest
+    name: Deploy to PR Slot
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    steps:
+    
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          # Destination path
+          path: ${{ runner.temp }}/helloworldapp
+    
       - name: Login for az cli commands 
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 'Run Azure webapp deploy action using publish profile credentials'
+      - name: Create Pull-Request slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot create --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
+          $webappUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='pr-123'].{hostNames:hostNames[0]}" -o tsv
+          Write-Output "The webapp URL is https://$($webappUrl)"
+          Write-Output "::set-output name=webAppUrl::https://$($webappUrl)"
+
+      - name: 'Run Azure webapp deploy action'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
+          package: '${{ runner.temp }}/helloworldapp'
+          slot-name: pr-${{github.event.number}}
+
+  deploy-testing:
+    runs-on: ubuntu-latest
+    name: Deploy to testing slot
+    needs: [build]
+    if: github.event_name != 'pull_request'
+    steps:
+    
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          # Destination path
+          path: ${{ runner.temp }}/helloworldapp
+    
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get testing url
+        shell: pwsh
+        run: |
+          $webappUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='testing'].{hostNames:hostNames[0]}" -o tsv
+          Write-Output "The webapp URL is https://$($webappUrl)"
+          Write-Output "::set-output name=webAppUrl::https://$($webappUrl)"
+
+      - name: 'Run Azure webapp deploy action'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
+          package: '${{ runner.temp }}/helloworldapp'
+          slot-name: testing
+          
+  
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: Deploy to production
+    needs: [deploy-testing]
+    steps:
+    
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          # Destination path
+          path: ${{ runner.temp }}/helloworldapp
+    
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Run Azure webapp deploy action'
         uses: azure/webapps-deploy@v2
         with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
@@ -48,6 +137,25 @@ jobs:
           slot-name: staging
 
       - name: Swap to production slot
+        shell: pwsh
         run: |
           az webapp deployment slot swap --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot staging --target-slot production
-          echo "Swap finished. App Service Application URL: https://$(az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv)"
+          $webappUrl = az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv
+          Write-Output "Swap finished. App Service Application URL: https://$($webappUrl)"
+          Write-Output "::set-output name=webAppUrl::https://$($webappUrl)"
+          
+  cleanup-pull-request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup pull request
+    steps:
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Pull-Request slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot delete --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
+          
