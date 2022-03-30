@@ -10,6 +10,7 @@ on:
       - ".github/workflows/issuehelpwanted.yml"
       - ".github/workflows/stale.yml"
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches: [main]
   workflow_dispatch:
 
@@ -166,6 +167,7 @@ jobs:
       
       - name: Get web app URL
         id: get-webapp-url
+        shell: pwsh
         run: |
           $webAppUrl = az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv
           Write-Output "Swap finished. App Service Application URL: https://$($webAppUrl)"
