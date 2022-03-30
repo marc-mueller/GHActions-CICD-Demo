@@ -51,3 +51,12 @@ resource slotStaging 'Microsoft.Web/sites/slots@2021-03-01' = {
   }
 }
 
+resource slotTesting 'Microsoft.Web/sites/slots@2021-03-01' = {
+  parent: webApp
+  name: 'testing'
+  location: location
+  properties: {
+    serverFarmId: appServicePlan.id
+  }
+}
+

@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "Infrastructure/**"
       - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/multienvbuildanddeploy.yml"
       - ".github/workflows/issuehelpwanted.yml"
       - ".github/workflows/stale.yml"
   pull_request:
