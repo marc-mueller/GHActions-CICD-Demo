@@ -2,13 +2,14 @@ name: Build and deploy app
 
 on:
   push:
-    branches:
-      - "main"
+    branches: [main]
     paths-ignore:
       - "Infrastructure/**"
       - ".github/workflows/infrastructure.yml"
       - ".github/workflows/issuehelpwanted.yml"
       - ".github/workflows/stale.yml"
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
