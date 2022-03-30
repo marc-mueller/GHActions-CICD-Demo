@@ -76,7 +76,7 @@ jobs:
         id: get-webapp-url
         shell: pwsh
         run: |
-          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='pr-123'].{hostNames:hostNames[0]}" -o tsv
+          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='pr-${{github.event.number}}'].{hostNames:hostNames[0]}" -o tsv
           Write-Output "The webapp URL is https://$($webAppUrl)"
           Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
 
