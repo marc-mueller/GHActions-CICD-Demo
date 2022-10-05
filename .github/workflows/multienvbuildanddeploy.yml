@@ -114,13 +114,13 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-     # - name: Get web app URL
-     #   id: get-webapp-url
-     #   shell: pwsh
-     #   run: |
-     #     $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='testing'].{hostNames:hostNames[0]}" -o tsv
-     #     Write-Output "The webapp URL is https://$($webAppUrl)"
-     #     Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+      - name: Get web app URL
+        id: get-webapp-url
+        shell: pwsh
+        run: |
+          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='testing'].{hostNames:hostNames[0]}" -o tsv
+          Write-Output "The webapp URL is https://$($webAppUrl)"
+          Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
 
       - name: 'Run Azure webapp deploy action'
         uses: azure/webapps-deploy@v2
