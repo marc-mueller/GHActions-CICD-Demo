@@ -1,0 +1,101 @@
+name: Multi-environment build and deploy with reusable workflow
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "Infrastructure/**"
+      - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/buildanddeploy.yml"
+      - ".github/workflows/issuehelpwanted.yml"
+      - ".github/workflows/stale.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 4thelloworlddemo
+  DOTNET_VERSION: '6.0.x'
+  ARTIFACTNAME: webapp
+
+jobs:
+  build:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build the web app
+    steps:
+
+      - uses: actions/checkout@master
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }} 
+      
+      - name: dotnet build and publish
+        run: |
+          dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
+          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
+          
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          path: ${{ runner.temp }}/helloworldapp
+          if-no-files-found: error
+      
+  deploy-pr:
+    uses: ./reusable/webappdeploy.yml
+    with:
+      artifactname: '${{ env.ARTIFACTNAME }}'
+      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      slotname: pr-${{github.event.number}}
+      environmentname: 'pull-request'
+      createSlot: true
+    secrets:
+      azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+      azureResourceGroup: ${{ secrets.AZURE_RG }}
+    needs: [build]
+    if: github.event_name == 'pull_request'
+  
+  deploy-testing:
+    uses: ./reusable/webappdeploy.yml
+    with:
+      artifactname: '${{ env.ARTIFACTNAME }}'
+      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      slotname: 'testing'
+      environmentname: 'testing'
+    secrets:
+      azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+      azureResourceGroup: ${{ secrets.AZURE_RG }}
+    needs: [build]
+    if: github.event_name != 'pull_request'    
+         
+  deploy-production:
+    uses: ./reusable/webappdeploy.yml
+    with:
+      artifactname: '${{ env.ARTIFACTNAME }}'
+      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      slotname: 'production'
+      environmentname: 'production'
+    secrets:
+      azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+      azureResourceGroup: ${{ secrets.AZURE_RG }}
+    needs: [deploy-testing]
+          
+  cleanup-pull-request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup pull request
+    steps:
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Pull-Request slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot delete --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
+          
