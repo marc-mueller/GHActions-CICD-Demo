@@ -70,13 +70,13 @@ jobs:
     - name: Swap to production slot
       shell: pwsh
       run: |
-        az webapp deployment slot swap --resource-group ${{ secrets.AZURE_RG }} --name ${{ inputs.webappname }}-webapp --slot staging --target-slot production
+        az webapp deployment slot swap --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --slot staging --target-slot production
       if: ${{ inputs.slotname == 'production' }}
     
     - name: Get web app URL
       id: get-webapp-url
       shell: pwsh
       run: |
-        $webAppUrl = az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ inputs.webappname }}-webapp --query hostNames[0] -o tsv
-        Write-Output "Swap finished. App Service Application URL: https://$($webAppUrl)"
+        $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='${{ inputs.slotname }}'].{hostNames:hostNames[0]}" -o tsv
+        Write-Output "The webapp URL is https://$($webAppUrl)"
         Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
