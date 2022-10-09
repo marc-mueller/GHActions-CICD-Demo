@@ -1,0 +1,90 @@
+name: Webapp deploy
+
+on:
+  workflow_call:
+    inputs:
+      artifactname:
+        required: true
+        type: string
+      webappname:
+        required: true
+        type: string
+      slotname:
+        required: true
+        type: string
+      environmentname:
+        required: true
+        type: string
+      createSlot:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      azureCredentials:
+        required: true
+      azureResourceGroup:
+        required: true
+
+jobs:
+  deploywebapp:
+    name: Deploy Webapp
+    runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environmentname }}
+      url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
+    steps:  
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v3.0.0
+      with:
+        name: ${{ inputs.artifactname }}
+        # Destination path
+        path: ${{ runner.temp }}/webappdeploymentpackage
+
+    - name: Login for az cli commands 
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.azureCredentials }}
+
+    - name: Create Pull-Request slot
+      shell: pwsh
+      run: |
+        az webapp deployment slot create --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --slot ${{ inputs.slotname }}
+      if: ${{ inputs.createSlot }}
+
+    - name: 'Run Azure webapp deploy action non-production'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ inputs.webappname }}-webapp 
+        package: '${{ runner.temp }}/webappdeploymentpackage'
+        slot-name: ${{ inputs.slotname }}
+      if: ${{ inputs.slotname != 'production' }}
+
+    - name: 'Run Azure webapp deploy action production'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ inputs.webappname }}-webapp 
+        package: '${{ runner.temp }}/webappdeploymentpackage'
+        slot-name: staging
+      if: ${{ inputs.slotname == 'production' }}
+
+    - name: Swap to production slot
+      shell: pwsh
+      run: |
+        az webapp deployment slot swap --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --slot staging --target-slot production
+      if: ${{ inputs.slotname == 'production' }}
+    
+    - name: Get web app URL
+      id: get-webapp-url
+      shell: pwsh
+      run: |
+        $webAppUrl = ''
+        if('${{ inputs.slotname }}' -eq 'production')
+        {
+          $webAppUrl = az webapp show --resource-group ${{ secrets.azureResourceGroup }} --name  ${{ inputs.webappname }}-webapp --query hostNames[0] -o tsv
+        }
+        else
+        {
+          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --query "[?name=='${{ inputs.slotname }}'].{hostNames:hostNames[0]}" -o tsv
+        }
+        Write-Output "The webapp URL is https://$($webAppUrl)"
+        Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
