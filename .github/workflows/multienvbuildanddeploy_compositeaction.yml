@@ -1,0 +1,121 @@
+name: Multi-environment with composite action
+
+on:
+  push:
+    branches: [main, feature/**]
+    paths-ignore:
+      - "Infrastructure/**"
+      - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/buildanddeploy.yml"
+      - ".github/workflows/issuehelpwanted.yml"
+      - ".github/workflows/stale.yml"
+      - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
+      - ".github/workflows/multienvbuildanddeploy.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 4thelloworlddemo
+  DOTNET_VERSION: '6.0.x'
+  ARTIFACTNAME: webapp
+
+jobs:
+  build:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build the web app
+    steps:
+
+      - uses: actions/checkout@master
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }} 
+      
+      - name: dotnet build and publish
+        run: |
+          dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
+          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
+          
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.0.0
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          path: ${{ runner.temp }}/helloworldapp
+          if-no-files-found: error
+      
+  deploy-pr:
+    runs-on: ubuntu-latest
+    name: Deploy to PR Slot
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    environment: 
+      name: pull-request
+      url:  ${{ steps.deploywebapp.webAppUrl }}
+    steps:
+      - uses: ./.github/actions/deploymywebapp
+        with:
+          artifactname: ${{ env.ARTIFACTNAME }}
+          webappname: ${{ env.AZURE_WEBAPP_NAME }}
+          slotname: pr-${{github.event.number}}
+          environmentname: 'pull-request'
+          createSlot: true
+          azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azureResourceGroup: ${{ secrets.AZURE_RG }}
+        id: deploywebapp
+
+  deploy-testing:
+    runs-on: ubuntu-latest
+    name: Deploy to testing slot
+    needs: [build]
+    if: github.event_name != 'pull_request'
+    environment: 
+      name: testing
+      url:  ${{ steps.deploywebapp.outputs.webAppUrl }}
+    steps:
+      - uses: ./.github/actions/deploymywebapp
+        with:
+          artifactname: ${{ env.ARTIFACTNAME }}
+          webappname: ${{ env.AZURE_WEBAPP_NAME }}
+          slotname: 'testing'
+          environmentname: 'testing'
+          azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azureResourceGroup: ${{ secrets.AZURE_RG }}
+        id: deploywebapp
+          
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: Deploy to production
+    needs: [deploy-testing]
+    environment: 
+      name: production
+      url:  ${{ steps.deploywebapp.outputs.webAppUrl }}
+    steps:
+      - uses: ./.github/actions/deploymywebapp
+        with:
+          artifactname: ${{ env.ARTIFACTNAME }}
+          webappname: ${{ env.AZURE_WEBAPP_NAME }}
+          slotname: 'production'
+          environmentname: 'production'
+          azureCredentials: ${{ secrets.AZURE_CREDENTIALS }}
+          azureResourceGroup: ${{ secrets.AZURE_RG }}
+        id: deploywebapp
+          
+  cleanup-pull-request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup pull request
+    steps:
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Pull-Request slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot delete --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
+          
