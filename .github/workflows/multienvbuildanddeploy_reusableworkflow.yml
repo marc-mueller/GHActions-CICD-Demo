@@ -2,7 +2,7 @@ name: Multi-environment with reusable workflow
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/**]
     paths-ignore:
       - "Infrastructure/**"
       - ".github/workflows/infrastructure.yml"
