@@ -1,4 +1,4 @@
-name: Multi-environment build and deploy with reusable workflow
+name: Multi-environment with reusable workflow
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
           if-no-files-found: error
       
   deploy-pr:
-    uses: ./reusable/webappdeploy.yml
+    uses: ./.github/workflows/reusable/webappdeploy.yml
     with:
       artifactname: '${{ env.ARTIFACTNAME }}'
       webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
@@ -60,7 +60,7 @@ jobs:
     if: github.event_name == 'pull_request'
   
   deploy-testing:
-    uses: ./reusable/webappdeploy.yml
+    uses: ./.github/workflows/reusable/webappdeploy.yml
     with:
       artifactname: '${{ env.ARTIFACTNAME }}'
       webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
@@ -73,7 +73,7 @@ jobs:
     if: github.event_name != 'pull_request'    
          
   deploy-production:
-    uses: ./reusable/webappdeploy.yml
+    uses: ./.github/workflows/reusable/webappdeploy.yml
     with:
       artifactname: '${{ env.ARTIFACTNAME }}'
       webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
