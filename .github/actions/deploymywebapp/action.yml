@@ -45,7 +45,7 @@ runs:
       shell: pwsh
       run: |
         az webapp deployment slot create --resource-group ${{ inputs.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --slot ${{ inputs.slotname }}
-      if: ${{ inputs.createSlot }}
+      if: ${{ inputs.createSlot == "true"  }}
 
     - name: 'Run Azure webapp deploy action non-production'
       uses: azure/webapps-deploy@v2
