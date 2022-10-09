@@ -25,14 +25,13 @@ on:
       azureResourceGroup:
         required: true
 
-environment: 
-  name: ${{ inputs.environmentname }}
-  url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
-
 jobs:
   deploywebapp:
     name: Deploy Webapp
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.environmentname }}
+      url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
     steps:  
     - name: Download a Build Artifact
       uses: actions/download-artifact@v3.0.0
