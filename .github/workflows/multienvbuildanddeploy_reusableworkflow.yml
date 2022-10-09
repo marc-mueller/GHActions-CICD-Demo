@@ -49,8 +49,8 @@ jobs:
   deploy-pr:
     uses: ./.github/workflows/rw_webappdeploy.yml
     with:
-      artifactname: '${{ env.ARTIFACTNAME }}'
-      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      artifactname: 'webapp'
+      webappwebappname: '4thelloworlddemo-webapp'
       slotname: pr-${{github.event.number}}
       environmentname: 'pull-request'
       createSlot: true
@@ -63,8 +63,8 @@ jobs:
   deploy-testing:
     uses: ./.github/workflows/rw_webappdeploy.yml
     with:
-      artifactname: '${{ env.ARTIFACTNAME }}'
-      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      artifactname: 'webapp'
+      webappwebappname: '4thelloworlddemo-webapp'
       slotname: 'testing'
       environmentname: 'testing'
     secrets:
@@ -76,8 +76,8 @@ jobs:
   deploy-production:
     uses: ./.github/workflows/rw_webappdeploy.yml
     with:
-      artifactname: '${{ env.ARTIFACTNAME }}'
-      webappname: '${{ env.AZURE_WEBAPP_NAME }}-webapp'
+      artifactname: 'webapp'
+      webappwebappname: '4thelloworlddemo-webapp'
       slotname: 'production'
       environmentname: 'production'
     secrets:
