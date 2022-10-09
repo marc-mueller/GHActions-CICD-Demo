@@ -80,9 +80,10 @@ jobs:
         $webAppUrl = ''
         if('${{ inputs.slotname }}' -eq 'production')
         {
-          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --query hostNames[0] -o tsv
+          $webAppUrl = az webapp show --resource-group ${{ secrets.azureResourceGroup }} --name  ${{ inputs.webappname }}-webapp --query hostNames[0] -o tsv
         }
-        else{
+        else
+        {
           $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --query "[?name=='${{ inputs.slotname }}'].{hostNames:hostNames[0]}" -o tsv
         }
         Write-Output "The webapp URL is https://$($webAppUrl)"
