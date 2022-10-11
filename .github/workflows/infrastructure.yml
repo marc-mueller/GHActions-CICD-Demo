@@ -1,12 +1,12 @@
 name: Create Azure Resources
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - "Infrastructure/**"
-      - ".github/workflows/infrastructure.yml"
-  pull_request:
-    branches: [main]
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - "Infrastructure/**"
+  #     - ".github/workflows/infrastructure.yml"
+  # pull_request:
+  #   branches: [main]
   workflow_dispatch:
 
 env:

@@ -1,19 +1,19 @@
 name: Multi-environment with composite action
 
 on:
-  push:
-    branches: [main, feature/**]
-    paths-ignore:
-      - "Infrastructure/**"
-      - ".github/workflows/infrastructure.yml"
-      - ".github/workflows/buildanddeploy.yml"
-      - ".github/workflows/issuehelpwanted.yml"
-      - ".github/workflows/stale.yml"
-      - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
-      - ".github/workflows/multienvbuildanddeploy.yml"
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches: [main]
+  # push:
+  #   branches: [main, feature/**]
+  #   paths-ignore:
+  #     - "Infrastructure/**"
+  #     - ".github/workflows/infrastructure.yml"
+  #     - ".github/workflows/buildanddeploy.yml"
+  #     - ".github/workflows/issuehelpwanted.yml"
+  #     - ".github/workflows/stale.yml"
+  #     - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
+  #     - ".github/workflows/multienvbuildanddeploy.yml"
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  #   branches: [main]
   workflow_dispatch:
 
 env:
