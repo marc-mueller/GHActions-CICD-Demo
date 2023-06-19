@@ -1,4 +1,4 @@
-name: Webapp deploy
+name: 90 Webapp deploy
 
 on:
   workflow_call:
@@ -34,7 +34,7 @@ jobs:
       url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
     steps:  
     - name: Download a Build Artifact
-      uses: actions/download-artifact@v3.0.0
+      uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifactname }}
         # Destination path
@@ -87,4 +87,4 @@ jobs:
           $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --query "[?name=='${{ inputs.slotname }}'].{hostNames:hostNames[0]}" -o tsv
         }
         Write-Output "The webapp URL is https://$($webAppUrl)"
-        Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+        Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT

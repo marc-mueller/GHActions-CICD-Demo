@@ -1,4 +1,4 @@
-name: Multi-environment build and deploy
+name: 20 Multi-environment build and deploy
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '7.0.x'
   ARTIFACTNAME: webapp
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@master
       
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }} 
       
@@ -40,7 +40,7 @@ jobs:
           dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
           
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACTNAME }}
           path: ${{ runner.temp }}/helloworldapp
@@ -59,7 +59,7 @@ jobs:
     steps:
     
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.ARTIFACTNAME }}
           # Destination path
@@ -81,7 +81,7 @@ jobs:
         run: |
           $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='pr-${{github.event.number}}'].{hostNames:hostNames[0]}" -o tsv
           Write-Output "The webapp URL is https://$($webAppUrl)"
-          Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+          Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
 
       - name: 'Run Azure webapp deploy action'
         uses: azure/webapps-deploy@v2
@@ -104,7 +104,7 @@ jobs:
     steps:
     
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.ARTIFACTNAME }}
           # Destination path
@@ -121,7 +121,7 @@ jobs:
         run: |
           $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='testing'].{hostNames:hostNames[0]}" -o tsv
           Write-Output "The webapp URL is https://$($webAppUrl)"
-          Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+          Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
 
       - name: 'Run Azure webapp deploy action'
         uses: azure/webapps-deploy@v2
@@ -144,7 +144,7 @@ jobs:
     steps:
     
       - name: Download a Build Artifact
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.ARTIFACTNAME }}
           # Destination path
@@ -173,7 +173,7 @@ jobs:
         run: |
           $webAppUrl = az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv
           Write-Output "Swap finished. App Service Application URL: https://$($webAppUrl)"
-          Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+          Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
           
   cleanup-pull-request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

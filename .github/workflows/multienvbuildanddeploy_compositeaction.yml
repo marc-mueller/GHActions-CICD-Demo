@@ -1,4 +1,4 @@
-name: Multi-environment with composite action
+name: 22 Multi-environment with composite action
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '7.0.x'
   ARTIFACTNAME: webapp
 
 jobs:
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@master
       
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }} 
       
@@ -41,7 +41,7 @@ jobs:
           dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
           
       - name: Upload a Build Artifact
-        uses: actions/upload-artifact@v3.0.0
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.ARTIFACTNAME }}
           path: ${{ runner.temp }}/helloworldapp
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
