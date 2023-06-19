@@ -1,6 +1,6 @@
 @description('Base name of the resource such as web app name and app service plan ')
 @minLength(2)
-param webAppName string = 'secretsdemo'
+param webAppName string = 'demowebapp'
 
 @description('The SKU of App Service Plan ')
 param sku string = 'F1'
@@ -11,11 +11,11 @@ param linuxFxVersion string = 'DOTNETCORE|6.0'
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
-var webAppPortalName_var = '${webAppName}-webapp'
-var appServicePlanName_var = 'AppServicePlan-${webAppName}'
+var webAppPortalName = '${webAppName}-webapp'
+var appServicePlanName = 'AppServicePlan-${webAppName}'
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
-  name: appServicePlanName_var
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+  name: appServicePlanName
   location: location
   sku: {
     name: sku
@@ -26,8 +26,8 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   }
 }
 
-resource webApp 'Microsoft.Web/sites@2020-06-01' = {
-  name: webAppPortalName_var
+resource webApp 'Microsoft.Web/sites@2022-09-01' = {
+  name: webAppPortalName
   location: location
   kind: 'app'
   identity: {
@@ -42,7 +42,7 @@ resource webApp 'Microsoft.Web/sites@2020-06-01' = {
   }
 }
 
-resource slotStaging 'Microsoft.Web/sites/slots@2021-03-01' = {
+resource slotStaging 'Microsoft.Web/sites/slots@2022-09-01' = {
   parent: webApp
   name: 'staging'
   location: location
@@ -51,7 +51,7 @@ resource slotStaging 'Microsoft.Web/sites/slots@2021-03-01' = {
   }
 }
 
-resource slotTesting 'Microsoft.Web/sites/slots@2021-03-01' = {
+resource slotTesting 'Microsoft.Web/sites/slots@2022-09-01' = {
   parent: webApp
   name: 'testing'
   location: location
