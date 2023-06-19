@@ -1,4 +1,4 @@
-name: Build and deploy app
+name: 10 Build and deploy app
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '7.0.x'
 
 jobs:
   build-and-deploy:

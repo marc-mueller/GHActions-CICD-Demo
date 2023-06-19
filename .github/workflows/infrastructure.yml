@@ -1,4 +1,4 @@
-name: Create Azure Resources
+name: 00 Create Azure Resources
 on:
   push:
     branches: [ main ]

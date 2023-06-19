@@ -1,4 +1,4 @@
-name: Add issue comment help wanted
+name: 30 Add issue comment help wanted
 on:
   issues:
     types:

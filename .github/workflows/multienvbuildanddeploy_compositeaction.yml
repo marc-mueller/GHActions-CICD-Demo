@@ -1,4 +1,4 @@
-name: Multi-environment with composite action
+name: 22 Multi-environment with composite action
 
 on:
   push:
