@@ -18,7 +18,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 4thelloworlddemo
-  DOTNET_VERSION: '6.0.x'
+  DOTNET_VERSION: '7.0.x'
   ARTIFACTNAME: webapp
 
 jobs:
