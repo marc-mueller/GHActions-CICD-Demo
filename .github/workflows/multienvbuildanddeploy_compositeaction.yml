@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
@@ -100,7 +100,7 @@ jobs:
     steps:
       - uses: actions/checkout@master # only needed because action is in same repo
       #- uses: ./.github/actions/deploymywebapp
-      - uses: marc-mueller/deploymywebapp@v1
+      - uses: marc-mueller/deploymywebapp@v2
         with:
           artifactname: ${{ env.ARTIFACTNAME }}
           webappname: ${{ env.AZURE_WEBAPP_NAME }}
