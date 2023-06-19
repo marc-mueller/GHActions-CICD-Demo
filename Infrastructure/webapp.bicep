@@ -6,7 +6,7 @@ param webAppName string = 'demowebapp'
 param sku string = 'F1'
 
 @description('The Runtime stack of current web app')
-param linuxFxVersion string = 'DOTNETCORE|6.0'
+param linuxFxVersion string = 'DOTNETCORE|7.0'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
