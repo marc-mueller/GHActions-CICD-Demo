@@ -1,0 +1,151 @@
+name: 31 deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "Infrastructure/**"
+      - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/buildanddeploy.yml"
+      - ".github/workflows/issuehelpwanted.yml"
+      - ".github/workflows/stale.yml"
+      - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["30 build"]
+    types: 
+      - completed
+
+env:
+  AZURE_WEBAPP_NAME: 4thelloworlddemo
+  DOTNET_VERSION: '7.0.x'
+  ARTIFACTNAME: webapp
+
+jobs:
+  
+  deploy-testing:
+    runs-on: ubuntu-latest
+    name: Deploy to testing slot
+    if: github.event_name != 'pull_request'
+    
+    
+    environment: 
+      name: testing
+      url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
+    
+    steps:
+    
+      # - name: Download a Build Artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: ${{ env.ARTIFACTNAME }}
+      #     # Destination path
+      #     path: ${{ runner.temp }}/helloworldapp
+
+      - name: 'Download artifact'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "${process.env.ARTIFACTNAME}"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
+
+      - name: 'Unzip artifact'
+        run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
+    
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get web app URL
+        id: get-webapp-url
+        shell: pwsh
+        run: |
+          $webAppUrl = az webapp deployment slot list --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query "[?name=='testing'].{hostNames:hostNames[0]}" -o tsv
+          Write-Output "The webapp URL is https://$($webAppUrl)"
+          Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
+
+      - name: 'Run Azure webapp deploy action'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
+          package: '${{ runner.temp }}/helloworldapp'
+          slot-name: testing
+          
+  
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: Deploy to production
+    needs: [deploy-testing]
+    
+    
+    environment: 
+      name: production
+      url:  ${{ steps.get-webapp-url.outputs.webAppUrl }}
+    
+    steps:
+    
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          # Destination path
+          path: ${{ runner.temp }}/helloworldapp
+    
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 'Run Azure webapp deploy action'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}-webapp 
+          package: '${{ runner.temp }}/helloworldapp'
+          slot-name: staging
+
+      - name: Swap to production slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot swap --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot staging --target-slot production
+      
+      - name: Get web app URL
+        id: get-webapp-url
+        shell: pwsh
+        run: |
+          $webAppUrl = az webapp show --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --query hostNames[0] -o tsv
+          Write-Output "Swap finished. App Service Application URL: https://$($webAppUrl)"
+          Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
+          
+  cleanup-pull-request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup pull request
+    steps:
+      - name: Login for az cli commands 
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Pull-Request slot
+        shell: pwsh
+        run: |
+          az webapp deployment slot delete --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
+          
