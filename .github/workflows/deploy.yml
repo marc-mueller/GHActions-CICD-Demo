@@ -42,7 +42,7 @@ jobs:
               run_id: context.payload.workflow_run.id,
             });
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "${process.env.ARTIFACTNAME}"
+              return artifact.name == `${process.env.ARTIFACTNAME}`
             })[0];
             if (!matchArtifact) {
               console.error('No matching artifact found');
@@ -55,11 +55,10 @@ jobs:
               archive_format: 'zip',
             });
             let fs = require('fs');
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
-
-
-      - name: 'Unzip artifact'
-        run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
+            let path = require('path');
+            let dir = `${process.env.RUNNER_TEMP}/helloworldapp`;
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, `${process.env.ARTIFACTNAME}.zip`), Buffer.from(download.data));
     
       - name: Login for az cli commands 
         uses: azure/login@v1
@@ -111,7 +110,7 @@ jobs:
               run_id: context.payload.workflow_run.id,
             });
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "${process.env.ARTIFACTNAME}"
+              return artifact.name == `${process.env.ARTIFACTNAME}`
             })[0];
             if (!matchArtifact) {
               console.error('No matching artifact found');
@@ -124,8 +123,10 @@ jobs:
               archive_format: 'zip',
             });
             let fs = require('fs');
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
-
+            let path = require('path');
+            let dir = `${process.env.RUNNER_TEMP}/helloworldapp`;
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(path.join(dir, `${process.env.ARTIFACTNAME}.zip`), Buffer.from(download.data));
 
       - name: 'Unzip artifact'
         run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
