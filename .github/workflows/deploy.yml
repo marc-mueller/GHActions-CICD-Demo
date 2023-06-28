@@ -50,21 +50,28 @@ jobs:
         with:
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: context.payload.workflow_run.id,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
             });
+            console.log('All artifact names: ', allArtifacts.data.artifacts.map(a => a.name));
+            console.log('Looking for artifact with name: ', process.env.ARTIFACTNAME);
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "${process.env.ARTIFACTNAME}"
             })[0];
+            if (!matchArtifact) {
+              console.error('No matching artifact found');
+              return;
+            }
             let download = await github.rest.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
+
 
       - name: 'Unzip artifact'
         run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
