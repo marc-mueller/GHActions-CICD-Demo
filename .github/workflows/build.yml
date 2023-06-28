@@ -1,0 +1,48 @@
+name: 30 build
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "Infrastructure/**"
+      - ".github/workflows/infrastructure.yml"
+      - ".github/workflows/buildanddeploy.yml"
+      - ".github/workflows/issuehelpwanted.yml"
+      - ".github/workflows/stale.yml"
+      - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: 4thelloworlddemo
+  DOTNET_VERSION: '7.0.x'
+  ARTIFACTNAME: webapp
+
+jobs:
+  build:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build the web app
+    steps:
+
+      - uses: actions/checkout@master
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }} 
+      
+      - name: dotnet build and publish
+        run: |
+          dotnet build ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj --configuration Release
+          dotnet publish ${{ github.workspace }}/HelloWorld/HelloWorld/HelloWorld.csproj -c Release -o ${{ runner.temp }}/helloworldapp 
+          
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ARTIFACTNAME }}
+          path: ${{ runner.temp }}/helloworldapp
+          if-no-files-found: error
+
