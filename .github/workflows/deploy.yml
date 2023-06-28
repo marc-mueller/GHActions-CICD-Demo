@@ -36,14 +36,11 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            console.log('Payload:', JSON.stringify(context.payload, null, 2));
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: context.payload.workflow_run.id,
             });
-            console.log('All artifact names: ', allArtifacts.data.artifacts.map(a => a.name));
-            console.log('Looking for artifact with name: ', process.env.ARTIFACTNAME);
             let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "${process.env.ARTIFACTNAME}"
             })[0];
@@ -97,12 +94,41 @@ jobs:
     
     steps:
     
-      - name: Download a Build Artifact
-        uses: actions/download-artifact@v3
+      # - name: Download a Build Artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: ${{ env.ARTIFACTNAME }}
+      #     # Destination path
+      #     path: ${{ runner.temp }}/helloworldapp
+
+      - name: 'Download artifact'
+        uses: actions/github-script@v6
         with:
-          name: ${{ env.ARTIFACTNAME }}
-          # Destination path
-          path: ${{ runner.temp }}/helloworldapp
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "${process.env.ARTIFACTNAME}"
+            })[0];
+            if (!matchArtifact) {
+              console.error('No matching artifact found');
+              return;
+            }
+            let download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
+
+
+      - name: 'Unzip artifact'
+        run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
     
       - name: Login for az cli commands 
         uses: azure/login@v1
