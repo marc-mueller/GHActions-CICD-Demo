@@ -29,7 +29,7 @@ jobs:
   deploy-testing:
     runs-on: ubuntu-latest
     name: Deploy to testing slot
-    if: github.event_name != 'pull_request'
+    # if: github.event_name != 'pull_request'
     
     
     environment: 
@@ -73,7 +73,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+          
       - name: Get web app URL
         id: get-webapp-url
         shell: pwsh
@@ -134,18 +134,5 @@ jobs:
           Write-Output "Swap finished. App Service Application URL: https://$($webAppUrl)"
           Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
           
-  cleanup-pull-request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    name: Cleanup pull request
-    steps:
-      - name: Login for az cli commands 
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Delete Pull-Request slot
-        shell: pwsh
-        run: |
-          az webapp deployment slot delete --resource-group ${{ secrets.AZURE_RG }} --name ${{ env.AZURE_WEBAPP_NAME }}-webapp --slot pr-${{github.event.number}}
           
