@@ -10,6 +10,9 @@ on:
       - ".github/workflows/issuehelpwanted.yml"
       - ".github/workflows/stale.yml"
       - ".github/workflows/multienvbuildanddeploy_reusableworkflow.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
   workflow_dispatch:
 
 env:
