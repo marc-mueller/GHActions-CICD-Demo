@@ -30,7 +30,7 @@ runs:
   using: "composite"
   steps:
     - name: Download a Build Artifact
-      uses: actions/download-artifact@v3.0.0
+      uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifactname }}
         # Destination path
@@ -83,4 +83,4 @@ runs:
           $webAppUrl = az webapp deployment slot list --resource-group ${{ inputs.azureResourceGroup }} --name ${{ inputs.webappname }}-webapp --query "[?name=='${{ inputs.slotname }}'].{hostNames:hostNames[0]}" -o tsv
         }
         Write-Output "The webapp URL is https://$($webAppUrl)"
-        Write-Output "::set-output name=webAppUrl::https://$($webAppUrl)"
+        Write-Output "webAppUrl=https://$($webAppUrl)" >> $env:GITHUB_OUTPUT
