@@ -127,9 +127,6 @@ jobs:
             let dir = `${process.env.RUNNER_TEMP}/helloworldapp`;
             fs.mkdirSync(dir, { recursive: true });
             fs.writeFileSync(path.join(dir, `${process.env.ARTIFACTNAME}.zip`), Buffer.from(download.data));
-
-      - name: 'Unzip artifact'
-        run: unzip pr_number.zip -d ${{ runner.temp }}/helloworldapp
     
       - name: Login for az cli commands 
         uses: azure/login@v1
